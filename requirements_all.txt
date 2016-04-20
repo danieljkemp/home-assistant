@@ -86,6 +86,9 @@ https://github.com/Xorso/pyalarmdotcom/archive/0.1.1.zip#pyalarmdotcom==0.1.1
 # homeassistant.components.modbus
 https://github.com/bashwork/pymodbus/archive/d7fc4f1cc975631e0a9011390e8017f64b612661.zip#pymodbus==1.2.0
 
+# homeassistant.components.device_tracker.unifi
+https://github.com/calmh/unifi-api/archive/06a89e89ec68d8fe797fee4ffd03a1bd8aac32a1.zip#unifi-api==1.2.4
+
 # homeassistant.components.media_player.onkyo
 https://github.com/danieljkemp/onkyo-eiscp/archive/python3.zip#onkyo-eiscp==0.9.2
 
@@ -302,9 +305,6 @@ transmissionrpc==0.11
 
 # homeassistant.components.sensor.uber
 uber_rides==0.2.1
-
-# homeassistant.components.device_tracker.unifi
-unifi==1.2.4
 
 # homeassistant.components.device_tracker.unifi
 urllib3
