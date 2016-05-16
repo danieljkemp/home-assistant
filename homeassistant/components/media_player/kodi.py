@@ -9,17 +9,18 @@ import urllib
 
 from homeassistant.components.media_player import (
     SUPPORT_NEXT_TRACK, SUPPORT_PAUSE, SUPPORT_PREVIOUS_TRACK, SUPPORT_SEEK,
-    SUPPORT_PLAY_MEDIA, SUPPORT_VOLUME_MUTE, SUPPORT_VOLUME_SET, SUPPORT_STOP,
+    SUPPORT_PLAY_MEDIA, SUPPORT_VOLUME_MUTE, SUPPORT_VOLUME_SET,
+    SUPPORT_TURN_ON, SUPPORT_TURN_OFF,
     MediaPlayerDevice)
 from homeassistant.const import (
     STATE_IDLE, STATE_OFF, STATE_PAUSED, STATE_PLAYING)
 
 _LOGGER = logging.getLogger(__name__)
-REQUIREMENTS = ['jsonrpc-requests==0.2']
+REQUIREMENTS = ['jsonrpc-requests==0.2', 'wakeonlan==0.2.2']
 
 SUPPORT_KODI = SUPPORT_PAUSE | SUPPORT_VOLUME_SET | SUPPORT_VOLUME_MUTE | \
     SUPPORT_PREVIOUS_TRACK | SUPPORT_NEXT_TRACK | SUPPORT_SEEK | \
-    SUPPORT_PLAY_MEDIA | SUPPORT_STOP
+    SUPPORT_PLAY_MEDIA
 
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
@@ -34,9 +35,10 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         KodiDevice(
             config.get('name', 'Kodi'),
             url,
+            mac_address=config.get('mac_address'),
             auth=(
                 config.get('user', ''),
-                config.get('password', ''))),
+                config.get('password', '')))
     ])
 
 
@@ -44,7 +46,8 @@ class KodiDevice(MediaPlayerDevice):
     """Representation of a XBMC/Kodi device."""
 
     # pylint: disable=too-many-public-methods, abstract-method
-    def __init__(self, name, url, auth=None):
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, name, url, auth=None, mac_address=None):
         """Initialize the Kodi device."""
         import jsonrpc_requests
         self._name = name
@@ -56,6 +59,10 @@ class KodiDevice(MediaPlayerDevice):
         self._properties = None
         self._item = None
         self._app_properties = None
+        self._mac_address = mac_address
+        if mac_address is not None:
+            from wakeonlan import wol
+            self._wol = wol
         self.update()
 
     @property
@@ -181,7 +188,15 @@ class KodiDevice(MediaPlayerDevice):
     @property
     def supported_media_commands(self):
         """Flag of media commands that are supported."""
-        return SUPPORT_KODI
+        if self._mac_address:
+            return SUPPORT_KODI | SUPPORT_TURN_ON | SUPPORT_TURN_OFF
+        else:
+            return SUPPORT_KODI
+
+    def turn_on(self):
+        """Turn on media player."""
+        self._wol.send_magic_packet(self._mac_address)
+        self.update_ha_state()
 
     def turn_off(self):
         """Turn off media player."""
@@ -228,13 +243,6 @@ class KodiDevice(MediaPlayerDevice):
     def media_pause(self):
         """Pause the media player."""
         self._set_play_state(False)
-
-    def media_stop(self):
-        """Stop the media player."""
-        players = self._get_players()
-
-        if len(players) != 0:
-            self._server.Player.Stop(players[0]['playerid'])
 
     def _goto(self, direction):
         """Helper method used for previous/next track."""

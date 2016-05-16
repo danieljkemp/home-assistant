@@ -359,6 +359,7 @@ uvcclient==0.8
 # homeassistant.components.verisure
 vsure==0.8.1
 
+# homeassistant.components.media_player.kodi
 # homeassistant.components.switch.wake_on_lan
 wakeonlan==0.2.2
 
