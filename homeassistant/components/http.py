@@ -10,8 +10,8 @@ import logging
 import mimetypes
 import threading
 import re
-import voluptuous as vol
 import ssl
+import voluptuous as vol
 
 import homeassistant.core as ha
 import homeassistant.remote as rem
